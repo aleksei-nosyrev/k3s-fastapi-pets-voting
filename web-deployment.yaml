@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pets-web-deployment
+  namespace: default
+  labels:
+    app: pets-web
+spec:
+  replicas: 2 # Запускаем 2 одинаковые копии сайта для надежности
+  selector:
+    matchLabels:
+      app: pets-web
+  template:
+    metadata:
+      labels:
+        app: pets-web
+    spec:
+      containers:
+        - name: web-app
+          image: my-first-pets-app:v3
+          imagePullPolicy: Never 
+          ports:
+            - containerPort: 80 # Стандартный порт для веб-сайтов
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+          env:
+            # 1. Передаем адрес нашей базы данных (имя нашего Service)
+            - name: DB_HOST
+              value: "db-service"
+            # 2. Передаем порт базы данных
+            - name: DB_PORT
+              value: "5432"
+            # 3. Достаем логин из созданного ранее db-secret
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: POSTGRES_USER
+            # 4. Безопасно достаем пароль из созданного ранее db-secret
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: POSTGRES_PASSWORD

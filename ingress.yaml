@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pets-web-ingress
+  namespace: default
+spec:
+  rules:
+    - host: pets.local # Доменное имя, по которому мы будем открывать сайт
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pets-web-service # Имя сетевого моста нашего сайта
+                port:
+                  number: 80 # Порт, на котором работает сетевой мост

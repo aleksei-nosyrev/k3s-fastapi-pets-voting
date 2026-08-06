@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pets-db
+  labels:
+    app: pets-db
+spec:
+  replicas: 1              # Для баз данных всегда запускают 1 реплику, чтобы не было конфликтов записи
+  selector:
+    matchLabels:
+      app: pets-db
+  template:
+    metadata:
+      labels:
+        app: pets-db
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        resources:        # Задаем лимиты, вашему 14600KF это на один зуб
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        env:              # 🔐 Прокидываем пароли из нашего Секрета внутрь Постагреса
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: POSTGRES_DB
+        volumeMounts:
+        - name: db-storage
+          mountPath: /var/lib/postgresql/data # Системная папка, куда Postgres сохраняет таблицы
+      volumes:
+      - name: db-storage
+        hostPath:
+          path: /tmp/postgres-pets-data       # 🚀 Физическая папка на вашем быстром диске E:
+          type: DirectoryOrCreate
+

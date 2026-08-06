@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Голосование: Котики против Собачек</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; text-align: center; padding: 40px; margin: 0; }
+        h1 { color: #1a1a1a; margin-bottom: 30px; }
+        .container { display: flex; justify-content: center; gap: 40px; max-width: 800px; margin: 0 auto; }
+        .card { background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 250px; cursor: pointer; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
+        .card.cats { border-bottom: 8px solid #ff4d4d; }
+        .card.dogs { border-bottom: 8px solid #4da6ff; }
+        .emoji { font-size: 64px; margin-bottom: 15px; }
+        button { background: #1a1a1a; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; }
+        .cats button { background: #ff4d4d; }
+        .dogs button { background: #4da6ff; }
+        .results-box { max-width: 600px; margin: 50px auto 0; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .bar-container { background: #e4e6eb; border-radius: 8px; height: 30px; margin: 15px 0; overflow: hidden; position: relative; }
+        .bar { height: 100%; width: 0%; transition: width 0.5s ease-in-out; display: flex; align-items: center; padding-left: 15px; color: white; font-weight: bold; box-sizing: border-box; }
+        .bar.cats-bar { background: #ff4d4d; }
+        .bar.dogs-bar { background: #4da6ff; }
+    </style>
+</head>
+<body>
+
+    <h1>🐱 Котики против Собачек 🐶</h1>
+    <p style="font-size: 18px; color: #65676b;">Кто заслуживает звание лучшего питомца? Отдай свой голос!</p>
+
+    <div class="container">
+        <div class="card cats" onclick="sendVote('cats')">
+            <div class="emoji">🐱</div>
+            <h2>Котики</h2>
+            <button>Голосовать</button>
+        </div>
+        <div class="card dogs" onclick="sendVote('dogs')">
+            <div class="emoji">🐶</div>
+            <h2>Собачки</h2>
+            <button>Голосовать</button>
+        </div>
+    </div>
+
+    <div class="results-box">
+        <h2>📊 Текущие результаты:</h2>
+        <div class="bar-container">
+            <div id="cats-bar" class="bar cats-bar">Котики: 0</div>
+        </div>
+        <div class="bar-container">
+            <div id="dogs-bar" class="bar dogs-bar">Собачки: 0</div>
+        </div>
+    </div>
+
+    <script>
+        // Функция автоматического обновления результатов с нашего Бэкенда
+        async function updateResults() {
+            try {
+                const response = await fetch('/results');
+                const data = await response.json();
+                
+                const total = data.cats + data.dogs;
+                const catsPercent = total > 0 ? Math.round((data.cats / total) * 100) : 0;
+                const dogsPercent = total > 0 ? Math.round((data.dogs / total) * 100) : 0;
+
+                document.getElementById('cats-bar').style.width = catsPercent + '%';
+                document.getElementById('cats-bar').innerText = `Котики: ${data.cats} (${catsPercent}%)`;
+
+                document.getElementById('dogs-bar').style.width = dogsPercent + '%';
+                document.getElementById('dogs-bar').innerText = `Собачки: ${data.dogs} (${dogsPercent}%)`;
+            } catch (error) {
+                console.error('Ошибка загрузки результатов:', error);
+            }
+        }
+
+                // Функция отправки голоса с обработкой защиты от накрутки
+        async function sendVote(candidate) {
+            try {
+                const response = await fetch(`/vote/${candidate}`, { method: 'POST' });
+                const result = await response.json();
+                
+                // Если бэкенд вернул ошибку накрутки (код 429)
+                if (response.status === 429) {
+                    alert(`🛑 Анти-спам: ${result.detail}`);
+                    return;
+                }
+                
+                if (result.status === 'success') {
+                    updateResults(); // Сразу обновляем графики
+                }
+            } catch (error) {
+                alert('Не удалось отправить голос');
+            }
+        }
+
+
+        // Запускаем обновление результатов при открытии страницы
+        updateResults();
+        // И обновляем их автоматически каждые 3 секунды, если голосует кто-то еще
+        setInterval(updateResults, 3000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: pets-db # Должно строго совпадать с labels в вашем Deployment базы
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432

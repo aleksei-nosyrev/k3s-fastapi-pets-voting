@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pets-web-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: pets-web # Связывает сервис с нашим деплойментом сайта
+  ports:
+    - protocol: TCP
+      port: 80         # Порт, который будет слушать сам сервис
+      targetPort: 80   # Порт, на котором запущен Nginx внутри подов
