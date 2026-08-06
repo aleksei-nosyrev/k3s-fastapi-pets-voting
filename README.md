@@ -15,7 +15,7 @@
 1. Убедитесь, что у вас запущен кластер K3s / Minikube.
 2. Клонируйте репозиторий:
    ```bash
-   git clone https://github.com
+   git clone https://github.com/aleksei-nosyrev/k3s-fastapi-pets-voting
    cd k3s-fastapi-pets-voting
    ```
 3. Создайте локальный файл секретов `db-secret.yaml` (исключен из репозитория) с вашими base64-паролями для PostgreSQL.
